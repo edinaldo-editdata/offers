@@ -42,10 +42,26 @@ export default function OrcamentosPage() {
         };
         
         console.log('📋 Variáveis carregadas:', {
-          serviceId: vars.serviceId || 'FALTANDO',
-          templateId: vars.templateId || 'FALTANDO',
-          publicKey: vars.publicKey ? `${vars.publicKey.substring(0, 8)}...` : 'FALTANDO'
+          serviceId: vars.serviceId || '❌ FALTANDO',
+          templateId: vars.templateId || '❌ FALTANDO',
+          publicKey: vars.publicKey ? `✅ ${vars.publicKey.substring(0, 8)}...` : '❌ FALTANDO'
         });
+
+        // Verificar se todas as variáveis estão presentes
+        const missingVars = [];
+        if (!vars.serviceId) missingVars.push('NEXT_PUBLIC_EMAILJS_SERVICE_ID');
+        if (!vars.templateId) missingVars.push('NEXT_PUBLIC_EMAILJS_TEMPLATE_ID');
+        if (!vars.publicKey) missingVars.push('NEXT_PUBLIC_EMAILJS_PUBLIC_KEY');
+        
+        if (missingVars.length > 0) {
+          console.error('❌ PROBLEMA ENCONTRADO - Variáveis faltando:', missingVars);
+          console.error('🔧 SOLUÇÃO: Configure estas variáveis no Netlify:');
+          console.error('1. Vá para https://app.netlify.com/');
+          console.error('2. Site Settings → Environment Variables');
+          console.error('3. Adicione as variáveis faltando');
+          console.error('4. Faça novo deploy');
+          return;
+        }
 
         // Tentar importar EmailJS
         console.log('📦 Importando EmailJS...');
@@ -71,6 +87,8 @@ export default function OrcamentosPage() {
         console.log('✅ EmailJS inicializado com sucesso');
 
         console.log('🎉 TESTE AUTOMÁTICO PASSOU! EmailJS está funcionando');
+        console.log('✅ Todas as configurações estão corretas');
+        console.log('📧 O sistema de email deve funcionar normalmente');
         
       } catch (error) {
         console.log('❌ TESTE AUTOMÁTICO FALHOU:', error);
