@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste EmailJS Direto</title>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+</head>
+<body>
+    <h1>Teste EmailJS Direto</h1>
+    <button onclick="testarEmail()">Testar Email</button>
+    <div id="resultado"></div>
+
+    <script>
+        // Usar suas configurações reais
+        const config = {
+            serviceId: 'service_editdata_offers',
+            templateId: 'template_5xviysf',  // Template correto
+            publicKey: 'yj42PJzyGOZpxcWk1'
+        };
+
+        emailjs.init(config.publicKey);
+
+        async function testarEmail() {
+            const resultado = document.getElementById('resultado');
+            resultado.innerHTML = 'Enviando...';
+
+            try {
+                // Dados de teste mínimos
+                const templateParams = {
+                    client_name: 'Teste Direto',
+                    client_email: 'edinaldobl@editdata.com.br',
+                    project_type: 'Teste Sistema',
+                    description: 'Teste direto do EmailJS'
+                };
+
+                console.log('Enviando com:', config);
+                console.log('Dados:', templateParams);
+
+                const response = await emailjs.send(
+                    config.serviceId,
+                    config.templateId,
+                    templateParams
+                );
+
+                console.log('Sucesso:', response);
+                resultado.innerHTML = `✅ Sucesso! Status: ${response.status}`;
+            } catch (error) {
+                console.error('Erro:', error);
+                resultado.innerHTML = `❌ Erro: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

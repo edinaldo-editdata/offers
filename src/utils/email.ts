@@ -221,15 +221,3 @@ export const isEmailConfigured = (): boolean => {
   
   return isConfigured;
 };
-    EMAILJS_CONFIG.publicKey
-  );
-  
-  console.log('🔧 Verificação de configuração EmailJS:', {
-    serviceId: EMAILJS_CONFIG.serviceId || 'FALTANDO',
-    templateId: EMAILJS_CONFIG.templateId || 'FALTANDO',
-    publicKey: EMAILJS_CONFIG.publicKey ? `${EMAILJS_CONFIG.publicKey.substring(0, 8)}...` : 'FALTANDO',
-    isConfigured
-  });
-  
-  return isConfigured;
-};
