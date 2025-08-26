@@ -92,8 +92,8 @@ export default function OrcamentosPage() {
         
       } catch (error) {
         console.log('❌ TESTE AUTOMÁTICO FALHOU:', error);
-        console.log('Mensagem:', error.message);
-        console.log('Stack:', error.stack);
+        console.log('Mensagem:', error instanceof Error ? error.message : 'Erro desconhecido');
+        console.log('Stack:', error instanceof Error ? error.stack : 'Stack não disponível');
       }
     };
 
