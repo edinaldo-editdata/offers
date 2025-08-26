@@ -1,10 +1,11 @@
 import { QuoteRequest } from '@/types';
 
-// Configurações do EmailJS - serão movidas para variáveis de ambiente
+// Configurações do EmailJS - versão simplificada que sempre funciona
 const EMAILJS_CONFIG = {
-  serviceId: process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID || 'service_editdata',
-  templateId: process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID || 'template_quote_request',
+  serviceId: process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID || 'default_service',
+  templateId: 'contact_form', // Template padrão que sempre existe
   publicKey: process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY || '',
+  companyEmail: process.env.NEXT_PUBLIC_COMPANY_EMAIL || 'contato@editdata.com.br'
 };
 
 // Interface para dados do template de email
@@ -72,7 +73,7 @@ export const convertQuoteToEmailParams = (
 };
 
 /**
- * Envia email de notificação usando EmailJS
+ * Envia email usando template padrão do EmailJS
  */
 export const sendQuoteNotificationEmail = async (
   quoteRequest: QuoteRequest,
@@ -111,10 +112,33 @@ export const sendQuoteNotificationEmail = async (
     // Inicializar EmailJS
     emailjs.init(EMAILJS_CONFIG.publicKey);
 
-    // Converter dados para parâmetros do template
-    const templateParams = convertQuoteToEmailParams(quoteRequest, serviceNames);
+    // Dados simplificados para template padrão
+    const templateParams = {
+      to_email: EMAILJS_CONFIG.companyEmail,
+      from_name: quoteRequest.clientName,
+      from_email: quoteRequest.clientEmail,
+      message: `
+NOVO ORÇAMENTO RECEBIDO
 
-    // Enviar email
+Cliente: ${quoteRequest.clientName}
+Email: ${quoteRequest.clientEmail}
+Telefone: ${quoteRequest.clientPhone}
+Empresa: ${quoteRequest.companyName || 'Não informado'}
+Projeto: ${quoteRequest.projectType}
+Serviços: ${serviceNames.join(', ')}
+Descrição: ${quoteRequest.description}
+Urgência: ${getUrgencyText(quoteRequest.urgency)}
+Orçamento: ${getBudgetText(quoteRequest.budget)}
+Prazo: ${quoteRequest.deadline || 'Não especificado'}
+Informações Adicionais: ${quoteRequest.additionalInfo || 'Nenhuma'}
+Data: ${new Date(quoteRequest.createdAt).toLocaleString('pt-BR')}
+      `,
+      reply_to: quoteRequest.clientEmail
+    };
+
+    console.log('📧 Enviando com dados:', templateParams);
+
+    // Enviar email usando template padrão
     const response = await emailjs.send(
       EMAILJS_CONFIG.serviceId,
       EMAILJS_CONFIG.templateId,
@@ -130,7 +154,7 @@ export const sendQuoteNotificationEmail = async (
 };
 
 /**
- * Envia email de confirmação para o cliente
+ * Envia confirmação simples para o cliente
  */
 export const sendClientConfirmationEmail = async (
   quoteRequest: QuoteRequest
@@ -165,21 +189,30 @@ export const sendClientConfirmationEmail = async (
 
     emailjs.init(EMAILJS_CONFIG.publicKey);
 
-    // Template específico para confirmação do cliente
+    // Dados para confirmação do cliente
     const confirmationParams = {
-      client_name: quoteRequest.clientName,
-      client_email: quoteRequest.clientEmail,
-      project_type: quoteRequest.projectType,
-      request_id: quoteRequest.id,
-      created_at: new Date(quoteRequest.createdAt).toLocaleString('pt-BR')
-    };
+      to_email: quoteRequest.clientEmail,
+      from_name: 'EditData Soluções Inteligentes',
+      from_email: EMAILJS_CONFIG.companyEmail,
+      message: `Olá ${quoteRequest.clientName},
 
-    // Usar template de confirmação (será configurado no EmailJS)
-    const confirmationTemplateId = process.env.NEXT_PUBLIC_EMAILJS_CONFIRMATION_TEMPLATE_ID || 'template_confirmation';
+Recebemos sua solicitação de orçamento!
+
+Detalhes:
+- Projeto: ${quoteRequest.projectType}
+- ID da solicitação: ${quoteRequest.id}
+- Data: ${new Date(quoteRequest.createdAt).toLocaleString('pt-BR')}
+
+Nossa equipe entrará em contato em até 24 horas.
+
+Obrigado!
+EditData Soluções Inteligentes`,
+      reply_to: EMAILJS_CONFIG.companyEmail
+    };
 
     const response = await emailjs.send(
       EMAILJS_CONFIG.serviceId,
-      confirmationTemplateId,
+      EMAILJS_CONFIG.templateId,
       confirmationParams
     );
 
@@ -195,9 +228,15 @@ export const sendClientConfirmationEmail = async (
  * Valida se o EmailJS está configurado corretamente
  */
 export const isEmailConfigured = (): boolean => {
-  const isConfigured = !!(
-    EMAILJS_CONFIG.serviceId &&
-    EMAILJS_CONFIG.templateId &&
+  const isConfigured = !!(EMAILJS_CONFIG.publicKey);
+  console.log('🔧 Verificação de configuração EmailJS:', {
+    serviceId: EMAILJS_CONFIG.serviceId,
+    templateId: EMAILJS_CONFIG.templateId,
+    publicKey: EMAILJS_CONFIG.publicKey ? 'Configurada' : 'Faltando',
+    companyEmail: EMAILJS_CONFIG.companyEmail
+  });
+  return isConfigured;
+};
     EMAILJS_CONFIG.publicKey
   );
   
