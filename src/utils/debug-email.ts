@@ -75,21 +75,29 @@ export const debugEmailJS = async () => {
       };
     }
 
-    // Dados de teste simplificados
+    // Dados de teste para template personalizado
     const testData = {
-      to_email: config.companyEmail,
-      from_name: 'Teste Diagnóstico',
-      from_email: 'teste@editdata.com.br',
-      message: 'Este é um teste automático do sistema de email. Se você recebeu este email, o sistema está funcionando corretamente!',
-      reply_to: 'teste@editdata.com.br'
+      client_name: 'Teste Diagnóstico',
+      client_email: 'teste@editdata.com.br',
+      client_phone: '(11) 99999-9999',
+      company_name: 'EditData Teste',
+      project_type: 'Teste do Sistema',
+      services: 'Automação de Planilhas',
+      description: 'Este é um teste automático do sistema de email',
+      urgency: 'Média',
+      budget: 'R$ 5.000 - R$ 15.000',
+      deadline: 'Não especificado',
+      additional_info: 'Teste diagnóstico',
+      created_at: new Date().toLocaleString('pt-BR')
     };
 
     console.log('📧 Tentando enviar email de teste...');
+    console.log('📧 Usando template:', config.templateId);
     
-    // Tentar enviar email usando template padrão
+    // Tentar enviar email usando template personalizado
     const response = await emailjs.send(
       config.serviceId!,
-      'contact_form', // Template padrão que sempre existe
+      config.templateId!,
       testData
     );
 

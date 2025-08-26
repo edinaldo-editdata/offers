@@ -34,7 +34,7 @@ $headers = @{
 
 $variables = @{
     "NEXT_PUBLIC_EMAILJS_SERVICE_ID" = "service_editdata_offers"
-    "NEXT_PUBLIC_EMAILJS_TEMPLATE_ID" = "template_quote_notification" 
+    "NEXT_PUBLIC_EMAILJS_TEMPLATE_ID" = "template_5xviysf"
     "NEXT_PUBLIC_EMAILJS_CONFIRMATION_TEMPLATE_ID" = "template_r3bds0a"
     "NEXT_PUBLIC_EMAILJS_PUBLIC_KEY" = "yj42PJzyGOZpxcWk1"
     "NEXT_PUBLIC_COMPANY_EMAIL" = "contato@editdata.com.br"
