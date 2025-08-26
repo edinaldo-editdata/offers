@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { QuoteRequest } from '@/types';
 import { saveQuoteRequest, getServices, generateId, getSelectedServiceNames } from '@/utils/storage';
 import { sendQuoteNotificationEmail, sendClientConfirmationEmail, isEmailConfigured } from '@/utils/email';
@@ -21,6 +21,66 @@ export default function OrcamentosPage() {
   const services = getServices();
   const emailConfigured = isEmailConfigured();
   const netlifyAvailable = isNetlifyFormsAvailable();
+
+  // Teste automático do EmailJS quando a página carrega
+  useEffect(() => {
+    const testEmailJS = async () => {
+      console.log('🧪 TESTE AUTOMÁTICO - Diagnóstico EmailJS');
+      
+      // Verificar se estamos no navegador
+      if (typeof window === 'undefined') {
+        console.log('❌ Rodando no servidor, EmailJS precisa do navegador');
+        return;
+      }
+
+      try {
+        // Verificar variáveis de ambiente
+        const vars = {
+          serviceId: process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID,
+          templateId: process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID,
+          publicKey: process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY
+        };
+        
+        console.log('📋 Variáveis carregadas:', {
+          serviceId: vars.serviceId || 'FALTANDO',
+          templateId: vars.templateId || 'FALTANDO',
+          publicKey: vars.publicKey ? `${vars.publicKey.substring(0, 8)}...` : 'FALTANDO'
+        });
+
+        // Tentar importar EmailJS
+        console.log('📦 Importando EmailJS...');
+        const emailjsModule = await import('@emailjs/browser');
+        const emailjs = emailjsModule.default;
+        
+        if (!emailjs) {
+          console.log('❌ EmailJS não carregou');
+          return;
+        }
+
+        console.log('✅ EmailJS importado:', typeof emailjs);
+        console.log('✅ Métodos disponíveis:', Object.keys(emailjs));
+
+        if (!vars.publicKey) {
+          console.log('❌ Public Key não configurada');
+          return;
+        }
+
+        // Inicializar
+        console.log('🔧 Inicializando EmailJS...');
+        emailjs.init(vars.publicKey);
+        console.log('✅ EmailJS inicializado com sucesso');
+
+        console.log('🎉 TESTE AUTOMÁTICO PASSOU! EmailJS está funcionando');
+        
+      } catch (error) {
+        console.log('❌ TESTE AUTOMÁTICO FALHOU:', error);
+        console.log('Mensagem:', error.message);
+        console.log('Stack:', error.stack);
+      }
+    };
+
+    testEmailJS();
+  }, []);
 
   const [formData, setFormData] = useState({
     clientName: '',
