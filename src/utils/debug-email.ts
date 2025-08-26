@@ -93,6 +93,8 @@ export const debugEmailJS = async () => {
 
     console.log('📧 Tentando enviar email de teste...');
     console.log('📧 Usando template:', config.templateId);
+    console.log('🏢 Service ID:', config.serviceId);
+    console.log('📝 Dados completos:', JSON.stringify(testData, null, 2));
     
     // Tentar enviar email usando template personalizado
     const response = await emailjs.send(

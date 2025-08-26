@@ -117,7 +117,9 @@ export const sendQuoteNotificationEmail = async (
     const templateParams = convertQuoteToEmailParams(quoteRequest, serviceNames);
 
     console.log('📧 Enviando com template personalizado:', EMAILJS_CONFIG.templateId);
-    console.log('📧 Dados do template:', templateParams);
+    console.log('🏢 Service ID:', EMAILJS_CONFIG.serviceId);
+    console.log('📝 Dados do template:', JSON.stringify(templateParams, null, 2));
+    console.log('🔑 Public Key (parcial):', EMAILJS_CONFIG.publicKey ? EMAILJS_CONFIG.publicKey.substring(0, 8) + '...' : 'FALTANDO');
 
     // Enviar email usando template personalizado
     const response = await emailjs.send(
@@ -181,7 +183,8 @@ export const sendClientConfirmationEmail = async (
     };
 
     console.log('📧 Enviando confirmação com template:', EMAILJS_CONFIG.confirmationTemplateId);
-    console.log('📧 Dados da confirmação:', confirmationParams);
+    console.log('🏢 Service ID:', EMAILJS_CONFIG.serviceId);
+    console.log('📝 Dados da confirmação:', JSON.stringify(confirmationParams, null, 2));
 
     const response = await emailjs.send(
       EMAILJS_CONFIG.serviceId,
