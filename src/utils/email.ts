@@ -2,19 +2,22 @@ import { QuoteRequest } from '@/types';
 
 // Configurações do EmailJS - usando templates personalizados
 const EMAILJS_CONFIG = {
-  serviceId: process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID || 'service_editdata_offers',
+  serviceId: process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID || 'service_vb6uptu',
   templateId: process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID || 'template_5xviysf',
   confirmationTemplateId: process.env.NEXT_PUBLIC_EMAILJS_CONFIRMATION_TEMPLATE_ID || 'template_r3bds0a',
-  publicKey: process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY || '',
+  publicKey: process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY || 'yj42PJzyGOZpxcWk1',
   companyEmail: process.env.NEXT_PUBLIC_COMPANY_EMAIL || 'contato@editdata.com.br'
 };
 
 // Interface para dados do template de email
 export interface EmailTemplateParams extends Record<string, unknown> {
+  // Dados do cliente
   client_name: string;
   client_email: string;
   client_phone: string;
   company_name: string;
+  
+  // Dados do projeto
   project_type: string;
   services: string;
   description: string;
@@ -23,6 +26,14 @@ export interface EmailTemplateParams extends Record<string, unknown> {
   deadline: string;
   additional_info: string;
   created_at: string;
+  
+  // Email de destino (onde o email será enviado)
+  to_email: string;
+  to_name: string;
+  
+  // Dados da empresa (remetente)
+  from_name: string;
+  from_email: string;
 }
 
 /**
@@ -58,10 +69,13 @@ export const convertQuoteToEmailParams = (
   serviceNames: string[]
 ): EmailTemplateParams => {
   return {
+    // Dados do cliente
     client_name: quoteRequest.clientName,
     client_email: quoteRequest.clientEmail,
     client_phone: quoteRequest.clientPhone,
     company_name: quoteRequest.companyName || 'Não informado',
+    
+    // Dados do projeto
     project_type: quoteRequest.projectType,
     services: serviceNames.join(', '),
     description: quoteRequest.description,
@@ -69,7 +83,15 @@ export const convertQuoteToEmailParams = (
     budget: getBudgetText(quoteRequest.budget),
     deadline: quoteRequest.deadline || 'Não especificado',
     additional_info: quoteRequest.additionalInfo || 'Nenhuma informação adicional',
-    created_at: new Date(quoteRequest.createdAt).toLocaleString('pt-BR')
+    created_at: new Date(quoteRequest.createdAt).toLocaleString('pt-BR'),
+    
+    // Email de destino (PARA ONDE o email vai)
+    to_email: EMAILJS_CONFIG.companyEmail, // contato@editdata.com.br
+    to_name: 'EditData - Equipe de Vendas',
+    
+    // Dados da empresa (remetente)
+    from_name: quoteRequest.clientName,
+    from_email: quoteRequest.clientEmail
   };
 };
 
@@ -174,11 +196,20 @@ export const sendClientConfirmationEmail = async (
 
     // Template específico para confirmação do cliente
     const confirmationParams = {
+      // Dados do cliente (quem VAI RECEBER o email)
+      to_email: quoteRequest.clientEmail, // Email do cliente
+      to_name: quoteRequest.clientName,
       client_name: quoteRequest.clientName,
       client_email: quoteRequest.clientEmail,
+      
+      // Dados do projeto
       project_type: quoteRequest.projectType,
       request_id: quoteRequest.id,
       created_at: new Date(quoteRequest.createdAt).toLocaleString('pt-BR'),
+      
+      // Dados da empresa (remetente)
+      from_name: 'EditData Soluções Inteligentes',
+      from_email: EMAILJS_CONFIG.companyEmail, // contato@editdata.com.br
       company_email: EMAILJS_CONFIG.companyEmail
     };
 

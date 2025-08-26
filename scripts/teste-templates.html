@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste Templates EmailJS</title>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        button { padding: 10px 20px; margin: 10px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 5px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Teste de Templates EmailJS</h1>
+    <p>Este teste vai verificar se os templates estão configurados corretamente no painel do EmailJS.</p>
+
+    <h2>Configurações Atuais:</h2>
+    <div class="info">
+        <strong>Service ID:</strong> service_vb6uptu<br>
+        <strong>Template Notificação:</strong> template_5xviysf<br>
+        <strong>Template Confirmação:</strong> template_r3bds0a<br>
+        <strong>Public Key:</strong> yj42PJzyGOZpxcWk1
+    </div>
+
+    <h2>Testes:</h2>
+    <button onclick="testarTemplateNotificacao()">Testar Template de Notificação</button>
+    <button onclick="testarTemplateConfirmacao()">Testar Template de Confirmação</button>
+    <button onclick="verificarTemplates()">Verificar Templates no Painel</button>
+
+    <div id="resultado"></div>
+
+    <script>
+        const config = {
+            serviceId: 'service_vb6uptu',
+            templateId: 'template_5xviysf',
+            confirmationTemplateId: 'template_r3bds0a',
+            publicKey: 'yj42PJzyGOZpxcWk1'
+        };
+
+        emailjs.init(config.publicKey);
+
+        function addResult(message, type = 'info') {
+            const resultado = document.getElementById('resultado');
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.innerHTML = message;
+            resultado.appendChild(div);
+        }
+
+        async function testarTemplateNotificacao() {
+            addResult('🔄 Testando template de notificação...', 'info');
+
+            try {
+                // Dados corretos para o template
+                const templateParams = {
+                    // Destinatário (PARA ONDE vai o email)
+                    to_email: 'contato@editdata.com.br',
+                    to_name: 'EditData - Equipe de Vendas',
+                    
+                    // Dados do cliente
+                    client_name: 'Teste Cliente',
+                    client_email: 'edinaldobl@gmail.com',
+                    client_phone: '(11) 99999-9999',
+                    company_name: 'Empresa Teste',
+                    
+                    // Dados do projeto
+                    project_type: 'Desenvolvimento Web',
+                    services: 'Website, E-commerce',
+                    description: 'Teste de envio de email',
+                    urgency: 'Média',
+                    budget: 'R$ 5.000 - R$ 15.000',
+                    deadline: '30 dias',
+                    additional_info: 'Teste automático',
+                    created_at: new Date().toLocaleString('pt-BR'),
+                    
+                    // Remetente
+                    from_name: 'Teste Cliente',
+                    from_email: 'edinaldobl@gmail.com'
+                };
+
+                console.log('Enviando com dados:', templateParams);
+
+                const response = await emailjs.send(
+                    config.serviceId,
+                    config.templateId,
+                    templateParams
+                );
+
+                addResult(`✅ Template de notificação funcionou! Status: ${response.status}`, 'success');
+                addResult(`📄 Dados enviados: <pre>${JSON.stringify(templateParams, null, 2)}</pre>`, 'info');
+            } catch (error) {
+                addResult(`❌ Erro no template de notificação: ${error.message}`, 'error');
+                console.error('Erro completo:', error);
+                
+                // Verificar o tipo específico de erro
+                if (error.status === 422) {
+                    addResult('🔍 Erro 422: Problemas com variáveis do template. Verifique se as variáveis no painel do EmailJS estão corretas.', 'error');
+                } else if (error.status === 400) {
+                    addResult('🔍 Erro 400: Template não encontrado. Verifique se o ID está correto.', 'error');
+                }
+            }
+        }
+
+        async function testarTemplateConfirmacao() {
+            addResult('🔄 Testando template de confirmação...', 'info');
+
+            try {
+                const templateParams = {
+                    // Destinatário (cliente)
+                    to_email: 'edinaldobl@gmail.com',
+                    to_name: 'Teste Cliente',
+                    client_name: 'Teste Cliente',
+                    client_email: 'edinaldobl@gmail.com',
+                    
+                    // Dados do projeto
+                    project_type: 'Desenvolvimento Web',
+                    request_id: 'TEST-001',
+                    created_at: new Date().toLocaleString('pt-BR'),
+                    
+                    // Dados da empresa
+                    from_name: 'EditData Soluções Inteligentes',
+                    from_email: 'contato@editdata.com.br',
+                    company_email: 'contato@editdata.com.br'
+                };
+
+                console.log('Enviando confirmação com dados:', templateParams);
+
+                const response = await emailjs.send(
+                    config.serviceId,
+                    config.confirmationTemplateId,
+                    templateParams
+                );
+
+                addResult(`✅ Template de confirmação funcionou! Status: ${response.status}`, 'success');
+                addResult(`📄 Dados enviados: <pre>${JSON.stringify(templateParams, null, 2)}</pre>`, 'info');
+            } catch (error) {
+                addResult(`❌ Erro no template de confirmação: ${error.message}`, 'error');
+                console.error('Erro completo:', error);
+            }
+        }
+
+        function verificarTemplates() {
+            addResult('📋 Para verificar os templates no painel do EmailJS:', 'info');
+            addResult(`
+                1. Acesse: <a href="https://dashboard.emailjs.com/admin" target="_blank">https://dashboard.emailjs.com/admin</a><br>
+                2. Faça login com: edinaldobl@editdata.com.br<br>
+                3. Vá em "Email Templates"<br>
+                4. Verifique se existem templates com IDs:<br>
+                   - template_5xviysf (notificação)<br>
+                   - template_r3bds0a (confirmação)<br>
+                5. No template, certifique-se que o campo "To" usa: <strong>{{to_email}}</strong><br>
+                6. Verifique se todas as variáveis estão corretas (sem erro de sintaxe)
+            `, 'info');
+        }
+
+        // Executar teste automático ao carregar
+        window.onload = function() {
+            addResult('🧪 Página carregada. Clique nos botões para testar os templates.', 'info');
+        };
+    </script>
+</body>
+</html>
