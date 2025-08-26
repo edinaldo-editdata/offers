@@ -86,7 +86,21 @@ export const sendQuoteNotificationEmail = async (
     }
 
     // Importação dinâmica do EmailJS para evitar problemas de SSR
-    const { default: emailjs } = await import('@emailjs/browser');
+    let emailjs;
+    try {
+      const emailjsModule = await import('@emailjs/browser');
+      emailjs = emailjsModule.default;
+      console.log('EmailJS carregado com sucesso');
+    } catch (importError) {
+      console.error('Erro ao importar EmailJS:', importError);
+      return false;
+    }
+
+    // Verificar se EmailJS foi carregado corretamente
+    if (!emailjs || typeof emailjs.init !== 'function') {
+      console.error('EmailJS não carregou corretamente');
+      return false;
+    }
 
     // Verificar se as configurações estão definidas
     if (!EMAILJS_CONFIG.publicKey) {
@@ -127,7 +141,22 @@ export const sendClientConfirmationEmail = async (
       return false;
     }
 
-    const { default: emailjs } = await import('@emailjs/browser');
+    // Importação dinâmica do EmailJS para evitar problemas de SSR
+    let emailjs;
+    try {
+      const emailjsModule = await import('@emailjs/browser');
+      emailjs = emailjsModule.default;
+      console.log('EmailJS carregado com sucesso (confirmação)');
+    } catch (importError) {
+      console.error('Erro ao importar EmailJS (confirmação):', importError);
+      return false;
+    }
+
+    // Verificar se EmailJS foi carregado corretamente
+    if (!emailjs || typeof emailjs.init !== 'function') {
+      console.error('EmailJS não carregou corretamente (confirmação)');
+      return false;
+    }
 
     if (!EMAILJS_CONFIG.publicKey) {
       console.warn('EmailJS: Chave pública não configurada');
@@ -166,9 +195,18 @@ export const sendClientConfirmationEmail = async (
  * Valida se o EmailJS está configurado corretamente
  */
 export const isEmailConfigured = (): boolean => {
-  return !!(
+  const isConfigured = !!(
     EMAILJS_CONFIG.serviceId &&
     EMAILJS_CONFIG.templateId &&
     EMAILJS_CONFIG.publicKey
   );
+  
+  console.log('🔧 Verificação de configuração EmailJS:', {
+    serviceId: EMAILJS_CONFIG.serviceId || 'FALTANDO',
+    templateId: EMAILJS_CONFIG.templateId || 'FALTANDO',
+    publicKey: EMAILJS_CONFIG.publicKey ? `${EMAILJS_CONFIG.publicKey.substring(0, 8)}...` : 'FALTANDO',
+    isConfigured
+  });
+  
+  return isConfigured;
 };

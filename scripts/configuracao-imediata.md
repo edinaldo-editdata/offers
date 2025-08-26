@@ -34,8 +34,9 @@ template_client_confirmation
 ### **4️⃣ PUBLIC_KEY** ⚠️ **IMPORTANTE - Use sua chave real**
 ```
 NEXT_PUBLIC_EMAILJS_PUBLIC_KEY
-[Cole aqui a Public Key do seu .env.local - linha 15]
+user_suaChaveAqui (SEM os colchetes [])
 ```
+**💡 Exemplo:** se sua chave for `user_abc123def456`, cole exatamente: `user_abc123def456`
 
 ### **5️⃣ COMPANY_EMAIL**
 ```

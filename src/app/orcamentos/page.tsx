@@ -5,6 +5,7 @@ import { QuoteRequest } from '@/types';
 import { saveQuoteRequest, getServices, generateId, getSelectedServiceNames } from '@/utils/storage';
 import { sendQuoteNotificationEmail, sendClientConfirmationEmail, isEmailConfigured } from '@/utils/email';
 import { submitToNetlifyForms, isNetlifyFormsAvailable } from '@/utils/netlify-forms';
+import { debugEmailJS } from '@/utils/debug-email';
 import { CheckCircle, Send, ArrowLeft, Mail, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 
@@ -49,6 +50,18 @@ export default function OrcamentosPage() {
     setIsLoading(true);
     setEmailStatus({ notificationSent: false, confirmationSent: false, netlifySubmitted: false, error: null });
 
+    // Debug: Verificar configurações
+    console.log('🔍 Iniciando envio do formulário...');
+    console.log('📧 EmailJS configurado:', emailConfigured);
+    console.log('🌐 Netlify disponível:', netlifyAvailable);
+    
+    // Debug: Testar EmailJS
+    if (emailConfigured) {
+      console.log('🧪 Executando diagnóstico EmailJS...');
+      const debugResult = await debugEmailJS();
+      console.log('📊 Resultado do diagnóstico:', debugResult);
+    }
+
     try {
       const quoteRequest: QuoteRequest = {
         id: generateId(),
@@ -58,11 +71,15 @@ export default function OrcamentosPage() {
         updatedAt: new Date().toISOString()
       };
 
+      console.log('💾 Dados do orçamento:', quoteRequest);
+
       // Salvar no localStorage
       saveQuoteRequest(quoteRequest);
+      console.log('✅ Dados salvos no localStorage');
 
       // Obter nomes dos serviços selecionados
       const selectedServiceNames = getSelectedServiceNames(formData.services);
+      console.log('🎯 Serviços selecionados:', selectedServiceNames);
 
       let notificationSent = false;
       let confirmationSent = false;
@@ -72,28 +89,36 @@ export default function OrcamentosPage() {
       // Tentar enviar via Netlify Forms primeiro (mais confiável)
       if (netlifyAvailable) {
         try {
+          console.log('🌐 Tentando enviar via Netlify Forms...');
           netlifySubmitted = await submitToNetlifyForms(quoteRequest, selectedServiceNames);
+          console.log('📋 Netlify Forms resultado:', netlifySubmitted);
           if (!netlifySubmitted) {
-            console.warn('Falha ao enviar via Netlify Forms');
+            console.warn('⚠️ Falha ao enviar via Netlify Forms');
           }
         } catch (netlifyError) {
-          console.error('Erro no Netlify Forms:', netlifyError);
+          console.error('❌ Erro no Netlify Forms:', netlifyError);
         }
       }
 
       // Tentar enviar emails se EmailJS estiver configurado
       if (emailConfigured) {
         try {
+          console.log('📧 Tentando enviar emails via EmailJS...');
+          
           // Enviar notificação para a empresa
+          console.log('📨 Enviando notificação para empresa...');
           notificationSent = await sendQuoteNotificationEmail(
             quoteRequest,
             selectedServiceNames
           );
+          console.log('📨 Notificação empresa resultado:', notificationSent);
 
           // Enviar confirmação para o cliente
+          console.log('📧 Enviando confirmação para cliente...');
           confirmationSent = await sendClientConfirmationEmail(quoteRequest);
+          console.log('📧 Confirmação cliente resultado:', confirmationSent);
         } catch (emailError) {
-          console.error('Erro no envio de emails:', emailError);
+          console.error('❌ Erro no envio de emails:', emailError);
           errorMessage = 'Erro ao enviar emails de notificação';
         }
       }
@@ -101,7 +126,15 @@ export default function OrcamentosPage() {
       // Se nenhum método funcionou, definir erro
       if (!netlifySubmitted && !notificationSent && !emailConfigured && !netlifyAvailable) {
         errorMessage = 'Nenhum sistema de notificação está configurado';
+        console.error('❌ Nenhum sistema de notificação ativo');
       }
+
+      console.log('📊 Resultados finais:', {
+        notificationSent,
+        confirmationSent,
+        netlifySubmitted,
+        errorMessage
+      });
 
       setEmailStatus({
         notificationSent,
@@ -112,7 +145,7 @@ export default function OrcamentosPage() {
 
       setIsSubmitted(true);
     } catch (error) {
-      console.error('Erro ao enviar orçamento:', error);
+      console.error('💥 Erro geral ao enviar orçamento:', error);
       setEmailStatus({
         notificationSent: false,
         confirmationSent: false,
