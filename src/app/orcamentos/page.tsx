@@ -2,14 +2,24 @@
 
 import { useState } from 'react';
 import { QuoteRequest } from '@/types';
-import { saveQuoteRequest, getServices, generateId } from '@/utils/storage';
-import { CheckCircle, Send, ArrowLeft } from 'lucide-react';
+import { saveQuoteRequest, getServices, generateId, getSelectedServiceNames } from '@/utils/storage';
+import { sendQuoteNotificationEmail, sendClientConfirmationEmail, isEmailConfigured } from '@/utils/email';
+import { submitToNetlifyForms, isNetlifyFormsAvailable } from '@/utils/netlify-forms';
+import { CheckCircle, Send, ArrowLeft, Mail, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 
 export default function OrcamentosPage() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [emailStatus, setEmailStatus] = useState<{
+    notificationSent: boolean;
+    confirmationSent: boolean;
+    netlifySubmitted: boolean;
+    error: string | null;
+  }>({ notificationSent: false, confirmationSent: false, netlifySubmitted: false, error: null });
   const services = getServices();
+  const emailConfigured = isEmailConfigured();
+  const netlifyAvailable = isNetlifyFormsAvailable();
 
   const [formData, setFormData] = useState({
     clientName: '',
@@ -37,6 +47,7 @@ export default function OrcamentosPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setEmailStatus({ notificationSent: false, confirmationSent: false, netlifySubmitted: false, error: null });
 
     try {
       const quoteRequest: QuoteRequest = {
@@ -47,15 +58,68 @@ export default function OrcamentosPage() {
         updatedAt: new Date().toISOString()
       };
 
+      // Salvar no localStorage
       saveQuoteRequest(quoteRequest);
+
+      // Obter nomes dos serviços selecionados
+      const selectedServiceNames = getSelectedServiceNames(formData.services);
+
+      let notificationSent = false;
+      let confirmationSent = false;
+      let netlifySubmitted = false;
+      let errorMessage: string | null = null;
+
+      // Tentar enviar via Netlify Forms primeiro (mais confiável)
+      if (netlifyAvailable) {
+        try {
+          netlifySubmitted = await submitToNetlifyForms(quoteRequest, selectedServiceNames);
+          if (!netlifySubmitted) {
+            console.warn('Falha ao enviar via Netlify Forms');
+          }
+        } catch (netlifyError) {
+          console.error('Erro no Netlify Forms:', netlifyError);
+        }
+      }
+
+      // Tentar enviar emails se EmailJS estiver configurado
+      if (emailConfigured) {
+        try {
+          // Enviar notificação para a empresa
+          notificationSent = await sendQuoteNotificationEmail(
+            quoteRequest,
+            selectedServiceNames
+          );
+
+          // Enviar confirmação para o cliente
+          confirmationSent = await sendClientConfirmationEmail(quoteRequest);
+        } catch (emailError) {
+          console.error('Erro no envio de emails:', emailError);
+          errorMessage = 'Erro ao enviar emails de notificação';
+        }
+      }
+
+      // Se nenhum método funcionou, definir erro
+      if (!netlifySubmitted && !notificationSent && !emailConfigured && !netlifyAvailable) {
+        errorMessage = 'Nenhum sistema de notificação está configurado';
+      }
+
+      setEmailStatus({
+        notificationSent,
+        confirmationSent,
+        netlifySubmitted,
+        error: errorMessage
+      });
+
       setIsSubmitted(true);
-      
-      // Simular envio por email (aqui você pode integrar com um serviço de email)
-      setTimeout(() => {
-        setIsLoading(false);
-      }, 1000);
     } catch (error) {
       console.error('Erro ao enviar orçamento:', error);
+      setEmailStatus({
+        notificationSent: false,
+        confirmationSent: false,
+        netlifySubmitted: false,
+        error: 'Erro ao processar solicitação'
+      });
+    } finally {
       setIsLoading(false);
     }
   };
@@ -73,6 +137,78 @@ export default function OrcamentosPage() {
               Recebemos sua solicitação de orçamento. Nossa equipe entrará em contato em até 24 horas.
             </p>
           </div>
+
+          {/* Status dos emails */}
+          {(emailConfigured || netlifyAvailable) && (
+            <div className="bg-gray-50 p-4 rounded-lg text-left">
+              <h3 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
+                <Mail className="mr-2 h-4 w-4" />
+                Status das Notificações
+              </h3>
+              <div className="space-y-2 text-sm">
+                {netlifyAvailable && (
+                  <div className="flex items-center">
+                    {emailStatus.netlifySubmitted ? (
+                      <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                    ) : (
+                      <AlertCircle className="h-4 w-4 text-orange-500 mr-2" />
+                    )}
+                    <span className={emailStatus.netlifySubmitted ? 'text-green-700' : 'text-orange-700'}>
+                      {emailStatus.netlifySubmitted 
+                        ? 'Enviado via Netlify Forms' 
+                        : 'Falha no envio via Netlify Forms'}
+                    </span>
+                  </div>
+                )}
+                {emailConfigured && (
+                  <>
+                    <div className="flex items-center">
+                      {emailStatus.notificationSent ? (
+                        <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                      ) : (
+                        <AlertCircle className="h-4 w-4 text-orange-500 mr-2" />
+                      )}
+                      <span className={emailStatus.notificationSent ? 'text-green-700' : 'text-orange-700'}>
+                        {emailStatus.notificationSent 
+                          ? 'Notificação enviada para nossa equipe' 
+                          : 'Notificação não foi enviada via EmailJS'}
+                      </span>
+                    </div>
+                    <div className="flex items-center">
+                      {emailStatus.confirmationSent ? (
+                        <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                      ) : (
+                        <AlertCircle className="h-4 w-4 text-orange-500 mr-2" />
+                      )}
+                      <span className={emailStatus.confirmationSent ? 'text-green-700' : 'text-orange-700'}>
+                        {emailStatus.confirmationSent 
+                          ? 'Email de confirmação enviado' 
+                          : 'Email de confirmação não foi enviado'}
+                      </span>
+                    </div>
+                  </>
+                )}
+                {emailStatus.error && (
+                  <div className="flex items-center text-red-700">
+                    <AlertCircle className="h-4 w-4 mr-2" />
+                    <span>{emailStatus.error}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {!emailConfigured && !netlifyAvailable && (
+            <div className="bg-yellow-50 p-4 rounded-lg">
+              <div className="flex items-center">
+                <AlertCircle className="h-5 w-5 text-yellow-400 mr-2" />
+                <p className="text-sm text-yellow-700">
+                  Sistemas de notificação não configurados. Sua solicitação foi salva e será processada manualmente.
+                </p>
+              </div>
+            </div>
+          )}
+
           <div className="space-y-4">
             <Link
               href="/"
@@ -83,6 +219,7 @@ export default function OrcamentosPage() {
             <button
               onClick={() => {
                 setIsSubmitted(false);
+                setEmailStatus({ notificationSent: false, confirmationSent: false, netlifySubmitted: false, error: null });
                 setFormData({
                   clientName: '',
                   clientEmail: '',

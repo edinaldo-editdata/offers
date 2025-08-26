@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Netlify Forms - Hidden Form for Detection</title>
+</head>
+<body>
+  <!-- Formulário oculto para detecção automática do Netlify Forms -->
+  <form name="quote-requests" netlify netlify-honeypot="bot-field" hidden>
+    <input type="text" name="client-name" />
+    <input type="email" name="client-email" />
+    <input type="tel" name="client-phone" />
+    <input type="text" name="company-name" />
+    <input type="text" name="project-type" />
+    <input type="text" name="services" />
+    <textarea name="description"></textarea>
+    <select name="urgency">
+      <option value="low">Baixa</option>
+      <option value="medium">Média</option>
+      <option value="high">Alta</option>
+    </select>
+    <select name="budget">
+      <option value="under-5k">Até R$ 5.000</option>
+      <option value="5k-15k">R$ 5.000 - R$ 15.000</option>
+      <option value="15k-30k">R$ 15.000 - R$ 30.000</option>
+      <option value="above-30k">Acima de R$ 30.000</option>
+    </select>
+    <input type="date" name="deadline" />
+    <textarea name="additional-info"></textarea>
+    <input type="text" name="request-id" />
+    <input type="datetime-local" name="created-at" />
+    
+    <!-- Campo honeypot para proteção contra spam -->
+    <input type="text" name="bot-field" />
+  </form>
+</body>
+</html>

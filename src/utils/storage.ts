@@ -132,3 +132,11 @@ export const formatDate = (date: string): string => {
 export const generateId = (): string => {
   return Math.random().toString(36).substr(2, 9);
 };
+
+// Função para obter nomes dos serviços selecionados
+export const getSelectedServiceNames = (serviceIds: string[]): string[] => {
+  const services = getServices();
+  return serviceIds
+    .map(id => services.find(service => service.id === id)?.name)
+    .filter(Boolean) as string[];
+};
