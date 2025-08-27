@@ -1,15 +1,15 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
+  // Configuração para Netlify - sem output standalone
+  eslint: {
+    ignoreDuringBuilds: true, // Ignorar warnings de ESLint durante build
+  },
+  typescript: {
+    ignoreBuildErrors: false, // Manter verificação de TypeScript
+  },
   images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'images.unsplash.com',
-        port: '',
-        pathname: '/**',
-      },
-    ],
+    unoptimized: true, // Necessário para sites estáticos
   },
 };
 

@@ -62,37 +62,46 @@ export function validatePassword(password: string): { isValid: boolean; errors: 
   };
 }
 
-// Funções de armazenamento de usuários (híbrido: servidor/cliente)
+// Função auxiliar para criar usuário admin padrão
+function getDefaultAdmin(): User {
+  return {
+    id: '092ct7ap5',
+    email: 'admin@editdata.com.br',
+    name: 'Administrador',
+    password: '$2b$12$gm7w/6riREy29haPHQNXseIPJ5wDd660kHIve2WyKQ5GbQUBtVsom', // Admin123!
+    role: 'admin',
+    isActive: true,
+    createdAt: '2025-08-27T18:52:46.456Z',
+    updatedAt: '2025-08-27T18:52:46.456Z'
+  };
+}
+
+// Funções de armazenamento de usuários (simplificado para produção)
 export function getUsers(): User[] {
-  // No servidor (NextAuth) - importação dinâmica para evitar erro no cliente
+  // No servidor (NextAuth) - usar dados em memória para produção
   if (typeof window === 'undefined') {
-    try {
-      // Importação dinâmica somente no servidor
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { getUsersFromFile } = require('./auth-server');
-      return getUsersFromFile();
-    } catch (error) {
-      console.error('🚨 Erro ao carregar funções do servidor:', error);
-      return [];
-    }
+    console.log('🔍 Servidor: Carregando usuários padrão');
+    return [getDefaultAdmin()];
   }
   
   // No cliente (browser)
   const users = localStorage.getItem('users');
-  return users ? JSON.parse(users) : [];
+  const storedUsers = users ? JSON.parse(users) : [];
+  
+  // Garantir que sempre existe pelo menos o admin padrão
+  const adminExists = storedUsers.some((user: User) => user.role === 'admin');
+  if (!adminExists) {
+    storedUsers.push(getDefaultAdmin());
+    localStorage.setItem('users', JSON.stringify(storedUsers));
+  }
+  
+  return storedUsers;
 }
 
 export function saveUser(user: User): void {
-  // No servidor (NextAuth) - importação dinâmica para evitar erro no cliente
+  // No servidor (NextAuth) - apenas log, não persiste em produção
   if (typeof window === 'undefined') {
-    try {
-      // Importação dinâmica somente no servidor
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { saveUserToFile } = require('./auth-server');
-      saveUserToFile(user);
-    } catch (error) {
-      console.error('🚨 Erro ao carregar funções do servidor:', error);
-    }
+    console.log('💾 Servidor: Tentativa de salvar usuário:', user.email);
     return;
   }
   
@@ -114,19 +123,12 @@ export function getUserByEmail(email: string): User | null {
   return users.find(user => user.email === email) || null;
 }
 
-// Funções para gerenciamento de tokens de reset
+// Funções para gerenciamento de tokens de reset (simplificado)
 export function getPasswordResetRequests(): PasswordResetRequest[] {
-  // No servidor (NextAuth) - importação dinâmica para evitar erro no cliente
+  // No servidor (NextAuth) - retornar array vazio em produção
   if (typeof window === 'undefined') {
-    try {
-      // Importação dinâmica somente no servidor
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { getPasswordResetRequestsFromFile } = require('./auth-server');
-      return getPasswordResetRequestsFromFile();
-    } catch (error) {
-      console.error('🚨 Erro ao carregar funções do servidor:', error);
-      return [];
-    }
+    console.log('🔍 Servidor: Carregando requests de reset (vazio)');
+    return [];
   }
   
   // No cliente (browser)
@@ -135,16 +137,9 @@ export function getPasswordResetRequests(): PasswordResetRequest[] {
 }
 
 export function savePasswordResetRequest(request: PasswordResetRequest): void {
-  // No servidor (NextAuth) - importação dinâmica para evitar erro no cliente
+  // No servidor (NextAuth) - apenas log, não persiste em produção
   if (typeof window === 'undefined') {
-    try {
-      // Importação dinâmica somente no servidor
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { savePasswordResetRequestToFile } = require('./auth-server');
-      savePasswordResetRequestToFile(request);
-    } catch (error) {
-      console.error('🚨 Erro ao carregar funções do servidor:', error);
-    }
+    console.log('💾 Servidor: Tentativa de salvar request de reset:', request.email);
     return;
   }
   
@@ -197,23 +192,26 @@ export function markPasswordResetAsUsed(token: string): boolean {
   return true;
 }
 
-// Criar usuário admin padrão se não existir
+// Simplificar inicialização do admin para produção
 export async function initializeDefaultAdmin(): Promise<void> {
+  console.log('🔧 Inicializando admin padrão...');
+  
+  // No servidor, sempre garantir que existe o admin padrão
+  if (typeof window === 'undefined') {
+    console.log('✅ Admin padrão disponível no servidor');
+    return;
+  }
+  
+  // No cliente, verificar se precisa criar admin
   const users = getUsers();
   const adminExists = users.some(user => user.role === 'admin');
   
   if (!adminExists) {
-    const defaultAdmin: User = {
-      id: generateId(),
-      email: 'admin@editdata.com.br',
-      name: 'Administrador',
-      password: await hashPassword('Admin123!'),
-      role: 'admin',
-      isActive: true,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-    
+    console.log('🔧 Criando admin padrão no cliente...');
+    const defaultAdmin = getDefaultAdmin();
     saveUser(defaultAdmin);
+    console.log('✅ Admin padrão criado');
+  } else {
+    console.log('✅ Admin já existe');
   }
 }

@@ -2,7 +2,7 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import { getUserByEmail, verifyPassword, initializeDefaultAdmin } from '@/utils/auth';
 
 export const authOptions = {
-  debug: process.env.NODE_ENV === 'development',
+  debug: true, // Habilitar debug em produção temporariamente
   
   providers: [
     CredentialsProvider({
@@ -13,6 +13,9 @@ export const authOptions = {
       },
       async authorize(credentials) {
         console.log('🔑 NextAuth: Tentando autorizar usuário:', credentials?.email);
+        console.log('🔑 Environment:', process.env.NODE_ENV);
+        console.log('🔑 NEXTAUTH_URL:', process.env.NEXTAUTH_URL);
+        console.log('🔑 NEXTAUTH_SECRET exists:', !!process.env.NEXTAUTH_SECRET);
         
         if (!credentials?.email || !credentials?.password) {
           console.log('❌ NextAuth: Credenciais não fornecidas');
@@ -20,13 +23,13 @@ export const authOptions = {
         }
 
         try {
-          // Garantir que existe um admin padrão
           console.log('🔧 NextAuth: Inicializando admin padrão...');
           await initializeDefaultAdmin();
           
           // Buscar usuário
           console.log('🔍 NextAuth: Buscando usuário:', credentials.email);
           const user = getUserByEmail(credentials.email);
+          console.log('🔍 NextAuth: Usuário encontrado:', !!user, user ? 'ativo: ' + user.isActive : 'não encontrado');
           
           if (!user) {
             console.log('❌ NextAuth: Usuário não encontrado');
@@ -41,6 +44,7 @@ export const authOptions = {
           // Verificar senha
           console.log('🔐 NextAuth: Verificando senha...');
           const isPasswordValid = await verifyPassword(credentials.password, user.password);
+          console.log('🔐 NextAuth: Senha válida:', isPasswordValid);
           
           if (!isPasswordValid) {
             console.log('❌ NextAuth: Senha inválida');
