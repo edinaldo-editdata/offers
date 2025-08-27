@@ -21,7 +21,7 @@ export default function AdminPage() {
   useEffect(() => {
     if (status === 'loading') return; // Ainda carregando
     
-    if (!session || session.user.role !== 'admin') {
+    if (!session || !session.user || (session.user as any).role !== 'admin') {
       router.push('/auth/login');
       return;
     }
@@ -46,7 +46,7 @@ export default function AdminPage() {
   }
   
   // Mostrar tela de acesso negado se não for admin
-  if (!session || session.user.role !== 'admin') {
+  if (!session || !session.user || (session.user as any).role !== 'admin') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="bg-white rounded-xl shadow-lg p-8 text-center max-w-md">
@@ -66,11 +66,6 @@ export default function AdminPage() {
       </div>
     );
   }
-
-  useEffect(() => {
-    setQuoteRequests(getQuoteRequests());
-    setQuotes(getQuotes());
-  }, []);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -332,9 +327,9 @@ export default function AdminPage() {
                 <p className="text-sm text-gray-500">Logado como</p>
                 <div className="flex items-center space-x-2">
                   <User size={20} className="text-blue-600" />
-                  <span className="font-medium text-gray-900">{session.user.name}</span>
+                  <span className="font-medium text-gray-900">{session?.user?.name || 'Admin'}</span>
                 </div>
-                <p className="text-xs text-gray-500">{session.user.email}</p>
+                <p className="text-xs text-gray-500">{session?.user?.email || 'admin@editdata.com.br'}</p>
               </div>
             </div>
           </div>

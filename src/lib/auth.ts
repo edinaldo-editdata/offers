@@ -107,10 +107,6 @@ export const authOptions: NextAuthOptions = {
 
   secret: process.env.NEXTAUTH_SECRET,
   
-  // Configurações adicionais para desenvolvimento
-  trustHost: true,
-  useSecureCookies: process.env.NODE_ENV === 'production',
-  
   events: {
     async signIn({ user }) {
       console.log(`Usuário ${user.email} fez login`);
