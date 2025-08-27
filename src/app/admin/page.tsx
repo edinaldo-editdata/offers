@@ -27,6 +27,12 @@ export default function AdminPage() {
     }
   }, [session, status, router]);
   
+  // Carregar dados
+  useEffect(() => {
+    setQuoteRequests(getQuoteRequests());
+    setQuotes(getQuotes());
+  }, []);
+  
   // Mostrar loading enquanto verifica autenticação
   if (status === 'loading') {
     return (

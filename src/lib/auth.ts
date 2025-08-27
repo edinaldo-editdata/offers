@@ -1,7 +1,6 @@
 import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { getUserByEmail, verifyPassword, initializeDefaultAdmin } from '@/utils/auth';
-import { User } from '@/types';
 
 export const authOptions: NextAuthOptions = {
   debug: process.env.NODE_ENV === 'development',
@@ -116,7 +115,7 @@ export const authOptions: NextAuthOptions = {
     async signIn({ user }) {
       console.log(`Usuário ${user.email} fez login`);
     },
-    async signOut({ session }) {
+    async signOut() {
       console.log(`Usuário fez logout`);
     },
   },

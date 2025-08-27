@@ -68,6 +68,7 @@ export function getUsers(): User[] {
   if (typeof window === 'undefined') {
     try {
       // Importação dinâmica somente no servidor
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { getUsersFromFile } = require('./auth-server');
       return getUsersFromFile();
     } catch (error) {
@@ -86,6 +87,7 @@ export function saveUser(user: User): void {
   if (typeof window === 'undefined') {
     try {
       // Importação dinâmica somente no servidor
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { saveUserToFile } = require('./auth-server');
       saveUserToFile(user);
     } catch (error) {
@@ -118,6 +120,7 @@ export function getPasswordResetRequests(): PasswordResetRequest[] {
   if (typeof window === 'undefined') {
     try {
       // Importação dinâmica somente no servidor
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { getPasswordResetRequestsFromFile } = require('./auth-server');
       return getPasswordResetRequestsFromFile();
     } catch (error) {
@@ -136,6 +139,7 @@ export function savePasswordResetRequest(request: PasswordResetRequest): void {
   if (typeof window === 'undefined') {
     try {
       // Importação dinâmica somente no servidor
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { savePasswordResetRequestToFile } = require('./auth-server');
       savePasswordResetRequestToFile(request);
     } catch (error) {
