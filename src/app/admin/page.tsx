@@ -1,9 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { QuoteRequest, Quote } from '@/types';
 import { getQuoteRequests, getQuotes, saveQuoteRequest, saveQuote, deleteQuoteRequest, formatCurrency, formatDate, generateId } from '@/utils/storage';
-import { Eye, Trash2, XCircle, FileText, Plus } from 'lucide-react';
+import { Eye, Trash2, XCircle, FileText, Plus, Lock, User } from 'lucide-react';
 
 export default function AdminPage() {
   const [quoteRequests, setQuoteRequests] = useState<QuoteRequest[]>([]);
@@ -11,6 +13,53 @@ export default function AdminPage() {
   const [selectedRequest, setSelectedRequest] = useState<QuoteRequest | null>(null);
   const [showQuoteForm, setShowQuoteForm] = useState(false);
   const [activeTab, setActiveTab] = useState<'requests' | 'quotes'>('requests');
+  
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  
+  // Verificar autenticação
+  useEffect(() => {
+    if (status === 'loading') return; // Ainda carregando
+    
+    if (!session || session.user.role !== 'admin') {
+      router.push('/auth/login');
+      return;
+    }
+  }, [session, status, router]);
+  
+  // Mostrar loading enquanto verifica autenticação
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Verificando autenticação...</p>
+        </div>
+      </div>
+    );
+  }
+  
+  // Mostrar tela de acesso negado se não for admin
+  if (!session || session.user.role !== 'admin') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="bg-white rounded-xl shadow-lg p-8 text-center max-w-md">
+          <Lock size={48} className="text-red-500 mx-auto mb-4" />
+          <h1 className="text-xl font-bold text-gray-900 mb-4">Acesso Negado</h1>
+          <p className="text-gray-600 mb-6">
+            Você não tem permissão para acessar esta página. 
+            Apenas administradores podem visualizar o painel administrativo.
+          </p>
+          <button
+            onClick={() => router.push('/auth/login')}
+            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Fazer Login
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   useEffect(() => {
     setQuoteRequests(getQuoteRequests());
@@ -265,9 +314,24 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Painel Administrativo</h1>
-          <p className="text-gray-600">Gerencie solicitações de orçamento e propostas</p>
+        {/* Cabeçalho Administrativo */}
+        <div className="bg-white shadow-sm rounded-lg mb-8 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Painel Administrativo</h1>
+              <p className="text-gray-600 mt-1">Gerencie solicitações de orçamento e propostas</p>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="text-right">
+                <p className="text-sm text-gray-500">Logado como</p>
+                <div className="flex items-center space-x-2">
+                  <User size={20} className="text-blue-600" />
+                  <span className="font-medium text-gray-900">{session.user.name}</span>
+                </div>
+                <p className="text-xs text-gray-500">{session.user.email}</p>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Tabs */}

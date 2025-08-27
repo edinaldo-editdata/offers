@@ -41,3 +41,6 @@ next-env.d.ts
 
 # Backup files
 *.bundle
+
+# Development data files
+/data/

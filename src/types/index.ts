@@ -98,3 +98,57 @@ export interface AddressInfo {
   state?: string;
   country?: string;
 }
+
+// Interfaces para Sistema de Autenticação
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  password: string;
+  role: 'admin' | 'user';
+  isActive: boolean;
+  lastLogin?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+export interface AuthSession {
+  user: {
+    id: string;
+    email: string;
+    name: string;
+    role: string;
+  };
+  expires: string;
+}
+
+export interface PasswordResetRequest {
+  id: string;
+  email: string;
+  token: string;
+  expiresAt: string;
+  used: boolean;
+  createdAt: string;
+}
+
+export interface ForgotPasswordData {
+  email: string;
+}
+
+export interface ResetPasswordData {
+  token: string;
+  password: string;
+  confirmPassword: string;
+}
+
+export interface AuthResponse {
+  success: boolean;
+  message: string;
+  user?: User;
+  token?: string;
+}
