@@ -21,7 +21,7 @@ export default function AdminPage() {
   useEffect(() => {
     if (status === 'loading') return; // Ainda carregando
     
-    if (!session || !session.user || (session.user as any).role !== 'admin') {
+    if (!session || !session.user || !('role' in session.user) || session.user.role !== 'admin') {
       router.push('/auth/login');
       return;
     }
@@ -46,7 +46,7 @@ export default function AdminPage() {
   }
   
   // Mostrar tela de acesso negado se não for admin
-  if (!session || !session.user || (session.user as any).role !== 'admin') {
+  if (!session || !session.user || !('role' in session.user) || session.user.role !== 'admin') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="bg-white rounded-xl shadow-lg p-8 text-center max-w-md">

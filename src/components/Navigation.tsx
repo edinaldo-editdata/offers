@@ -11,7 +11,7 @@ const Navigation = () => {
   const { data: session, status } = useSession();
 
   const isAuthenticated = status === 'authenticated';
-  const isAdmin = session?.user?.role === 'admin';
+  const isAdmin = session?.user && 'role' in session.user && session.user.role === 'admin';
 
   const publicNavItems = [
     { href: '/', label: 'Início', icon: Home },
@@ -94,7 +94,7 @@ const Navigation = () => {
                   {/* Informações do Usuário */}
                   <div className="flex items-center space-x-2 text-sm text-gray-600">
                     <User size={16} />
-                    <span>{session.user.name}</span>
+                    <span>{session?.user?.name || 'Usuário'}</span>
                   </div>
                   
                   {/* Botão de Logout */}

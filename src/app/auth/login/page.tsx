@@ -67,7 +67,7 @@ export default function LoginPage() {
 
       // Verificar se a sessão foi criada com sucesso
       const session = await getSession();
-      if (session?.user?.role === 'admin') {
+      if (session?.user && 'role' in session.user && session.user.role === 'admin') {
         router.push('/admin');
       } else {
         setError('Acesso não autorizado');

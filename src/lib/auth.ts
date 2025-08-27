@@ -1,8 +1,7 @@
-import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { getUserByEmail, verifyPassword, initializeDefaultAdmin } from '@/utils/auth';
 
-export const authOptions: NextAuthOptions = {
+export const authOptions = {
   debug: process.env.NODE_ENV === 'development',
   
   providers: [
@@ -70,7 +69,7 @@ export const authOptions: NextAuthOptions = {
   ],
   
   session: {
-    strategy: 'jwt',
+    strategy: 'jwt' as const,
     maxAge: 24 * 60 * 60, // 24 horas
   },
 
@@ -79,7 +78,8 @@ export const authOptions: NextAuthOptions = {
   },
 
   callbacks: {
-    async jwt({ token, user }) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    async jwt({ token, user }: any) {
       console.log('🎫 NextAuth JWT Callback:', { user: user?.email, hasToken: !!token });
       if (user) {
         token.role = user.role;
@@ -89,7 +89,8 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
     
-    async session({ session, token }) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    async session({ session, token }: any) {
       console.log('📋 NextAuth Session Callback:', { sessionUser: session.user?.email, tokenRole: token.role });
       if (token) {
         session.user.id = token.id as string;
@@ -108,7 +109,8 @@ export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
   
   events: {
-    async signIn({ user }) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    async signIn({ user }: any) {
       console.log(`Usuário ${user.email} fez login`);
     },
     async signOut() {
