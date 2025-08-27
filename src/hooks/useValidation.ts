@@ -13,8 +13,7 @@ import {
   validateEmail,
   validatePhone,
   validateCEP,
-  validateCPFOrCNPJ,
-  validateForm
+  validateCPFOrCNPJ
 } from '@/utils/validation';
 
 export interface InputState {
@@ -157,7 +156,7 @@ export interface UseValidatedFormProps<T> {
   onSubmit?: (values: T) => void | Promise<void>;
 }
 
-export function useValidatedForm<T extends Record<string, any>>({
+export function useValidatedForm<T extends Record<string, unknown>>({
   initialValues,
   validationRules = {},
   onSubmit
@@ -313,7 +312,7 @@ export function useValidatedForm<T extends Record<string, any>>({
         // Sanitizar dados completos antes do envio
         const sanitizedData = Object.keys(formData).reduce((acc, key) => {
           const value = formData[key as keyof T];
-          (acc as any)[key] = typeof value === 'string' ? sanitizeString(value) : value;
+          (acc as Record<string, unknown>)[key] = typeof value === 'string' ? sanitizeString(value) : value;
           return acc;
         }, {} as T);
         

@@ -6,10 +6,9 @@ import { saveQuoteRequest, getServices, generateId, getSelectedServiceNames } fr
 import { sendQuoteNotificationEmail, sendClientConfirmationEmail, isEmailConfigured } from '@/utils/email';
 import { submitToNetlifyForms, isNetlifyFormsAvailable } from '@/utils/netlify-forms';
 import { debugEmailJS } from '@/utils/debug-email';
-import { useValidatedForm } from '@/hooks/useValidation';
 import { sanitizeObject, validateForm, FormValidationErrors } from '@/utils/validation';
 import ValidatedInput from '@/components/ValidatedInput';
-import { CheckCircle, Send, ArrowLeft, Mail, AlertCircle, User, Building, FileText, Clock, DollarSign } from 'lucide-react';
+import { CheckCircle, Send, ArrowLeft, Mail, AlertCircle, User, Building, FileText } from 'lucide-react';
 import Link from 'next/link';
 
 export default function OrcamentosPage() {

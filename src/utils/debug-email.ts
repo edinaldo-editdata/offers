@@ -1,5 +1,4 @@
 // Script de diagnóstico para EmailJS
-import { QuoteRequest } from '@/types';
 
 // Função de debug para testar EmailJS
 export const debugEmailJS = async () => {

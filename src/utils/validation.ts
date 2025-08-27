@@ -269,18 +269,18 @@ export function sanitizeString(input: string): string {
 /**
  * Sanitiza objeto completo recursivamente
  */
-export function sanitizeObject<T extends Record<string, any>>(obj: T): T {
+export function sanitizeObject<T extends Record<string, unknown>>(obj: T): T {
   const sanitized = { ...obj };
   
   for (const key in sanitized) {
     if (typeof sanitized[key] === 'string') {
-      (sanitized as any)[key] = sanitizeString(sanitized[key]);
+      (sanitized as Record<string, unknown>)[key] = sanitizeString(sanitized[key] as string);
     } else if (Array.isArray(sanitized[key])) {
-      sanitized[key] = sanitized[key].map((item: any) => 
+      (sanitized as Record<string, unknown>)[key] = (sanitized[key] as unknown[]).map((item: unknown) => 
         typeof item === 'string' ? sanitizeString(item) : item
       );
     } else if (typeof sanitized[key] === 'object' && sanitized[key] !== null) {
-      sanitized[key] = sanitizeObject(sanitized[key]);
+      (sanitized as Record<string, unknown>)[key] = sanitizeObject(sanitized[key] as Record<string, unknown>);
     }
   }
   
@@ -324,18 +324,18 @@ export interface FormValidationErrors {
 /**
  * Valida um formulário completo
  */
-export function validateForm(data: any): FormValidationErrors {
+export function validateForm(data: Record<string, unknown>): FormValidationErrors {
   const errors: FormValidationErrors = {};
   
   // Validação de nome
-  if (!data.clientName || data.clientName.trim().length < 2) {
+  if (!data.clientName || (typeof data.clientName === 'string' && data.clientName.trim().length < 2)) {
     errors.clientName = 'Nome deve ter pelo menos 2 caracteres';
   }
   
   // Validação de email
   if (!data.clientEmail) {
     errors.clientEmail = 'Email é obrigatório';
-  } else {
+  } else if (typeof data.clientEmail === 'string') {
     const emailValidation = validateEmail(data.clientEmail);
     if (!emailValidation.isValid) {
       errors.clientEmail = emailValidation.message!;
@@ -345,7 +345,7 @@ export function validateForm(data: any): FormValidationErrors {
   // Validação de telefone
   if (!data.clientPhone) {
     errors.clientPhone = 'Telefone é obrigatório';
-  } else {
+  } else if (typeof data.clientPhone === 'string') {
     const phoneValidation = validatePhone(data.clientPhone);
     if (!phoneValidation.isValid) {
       errors.clientPhone = phoneValidation.message!;
@@ -353,7 +353,7 @@ export function validateForm(data: any): FormValidationErrors {
   }
   
   // Validação de CPF/CNPJ se fornecido
-  if (data.document) {
+  if (data.document && typeof data.document === 'string') {
     const docValidation = validateCPFOrCNPJ(data.document);
     if (!docValidation.isValid) {
       errors.document = docValidation.message!;
@@ -361,7 +361,7 @@ export function validateForm(data: any): FormValidationErrors {
   }
   
   // Validação de CEP se fornecido
-  if (data.cep) {
+  if (data.cep && typeof data.cep === 'string') {
     const cepValidation = validateCEP(data.cep);
     if (!cepValidation.isValid) {
       errors.cep = cepValidation.message!;
