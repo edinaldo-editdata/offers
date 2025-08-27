@@ -6,7 +6,10 @@ import { saveQuoteRequest, getServices, generateId, getSelectedServiceNames } fr
 import { sendQuoteNotificationEmail, sendClientConfirmationEmail, isEmailConfigured } from '@/utils/email';
 import { submitToNetlifyForms, isNetlifyFormsAvailable } from '@/utils/netlify-forms';
 import { debugEmailJS } from '@/utils/debug-email';
-import { CheckCircle, Send, ArrowLeft, Mail, AlertCircle } from 'lucide-react';
+import { useValidatedForm } from '@/hooks/useValidation';
+import { sanitizeObject, validateForm, FormValidationErrors } from '@/utils/validation';
+import ValidatedInput from '@/components/ValidatedInput';
+import { CheckCircle, Send, ArrowLeft, Mail, AlertCircle, User, Building, FileText, Clock, DollarSign } from 'lucide-react';
 import Link from 'next/link';
 
 export default function OrcamentosPage() {
@@ -105,6 +108,13 @@ export default function OrcamentosPage() {
     clientEmail: '',
     clientPhone: '',
     companyName: '',
+    // Novos campos de validação
+    document: '',
+    cep: '',
+    address: '',
+    city: '',
+    state: '',
+    // Campos existentes
     projectType: '',
     services: [] as string[],
     description: '',
@@ -113,6 +123,8 @@ export default function OrcamentosPage() {
     deadline: '',
     additionalInfo: ''
   });
+
+  const [validationErrors, setValidationErrors] = useState<FormValidationErrors>({});
 
   const handleServiceToggle = (serviceId: string) => {
     setFormData(prev => ({
@@ -125,6 +137,16 @@ export default function OrcamentosPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validar dados antes do envio
+    const errors = validateForm(formData);
+    setValidationErrors(errors);
+    
+    if (Object.keys(errors).length > 0) {
+      console.log('⚠️ Erro de validação:', errors);
+      return;
+    }
+    
     setIsLoading(true);
     setEmailStatus({ notificationSent: false, confirmationSent: false, netlifySubmitted: false, error: null });
 
@@ -141,9 +163,12 @@ export default function OrcamentosPage() {
     }
 
     try {
+      // Sanitizar dados antes de criar o objeto
+      const sanitizedData = sanitizeObject(formData);
+      
       const quoteRequest: QuoteRequest = {
         id: generateId(),
-        ...formData,
+        ...sanitizedData,
         status: 'pending',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
@@ -336,6 +361,11 @@ export default function OrcamentosPage() {
                   clientEmail: '',
                   clientPhone: '',
                   companyName: '',
+                  document: '',
+                  cep: '',
+                  address: '',
+                  city: '',
+                  state: '',
                   projectType: '',
                   services: [],
                   description: '',
@@ -344,6 +374,7 @@ export default function OrcamentosPage() {
                   deadline: '',
                   additionalInfo: ''
                 });
+                setValidationErrors({});
               }}
               className="w-full flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
             >
@@ -374,79 +405,121 @@ export default function OrcamentosPage() {
           <form onSubmit={handleSubmit} className="p-6 space-y-6">
             {/* Informações do Cliente */}
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Informações de Contato</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                <User className="mr-2 h-5 w-5 text-blue-600" />
+                Informações de Contato
+              </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="clientName" className="block text-sm font-medium text-gray-700">
-                    Nome Completo *
-                  </label>
-                  <input
-                    type="text"
-                    id="clientName"
-                    required
-                    value={formData.clientName}
-                    onChange={(e) => setFormData(prev => ({ ...prev, clientName: e.target.value }))}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="clientEmail" className="block text-sm font-medium text-gray-700">
-                    E-mail *
-                  </label>
-                  <input
-                    type="email"
-                    id="clientEmail"
-                    required
-                    value={formData.clientEmail}
-                    onChange={(e) => setFormData(prev => ({ ...prev, clientEmail: e.target.value }))}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="clientPhone" className="block text-sm font-medium text-gray-700">
-                    Telefone *
-                  </label>
-                  <input
-                    type="tel"
-                    id="clientPhone"
-                    required
-                    value={formData.clientPhone}
-                    onChange={(e) => setFormData(prev => ({ ...prev, clientPhone: e.target.value }))}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="companyName" className="block text-sm font-medium text-gray-700">
-                    Nome da Empresa
-                  </label>
-                  <input
-                    type="text"
-                    id="companyName"
-                    value={formData.companyName}
-                    onChange={(e) => setFormData(prev => ({ ...prev, companyName: e.target.value }))}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  />
-                </div>
+                <ValidatedInput
+                  label="Nome Completo"
+                  type="text"
+                  required
+                  value={formData.clientName}
+                  onChange={(e) => setFormData(prev => ({ ...prev, clientName: e.target.value }))}
+                  error={validationErrors.clientName}
+                  placeholder="Seu nome completo"
+                  leftIcon={<User className="h-4 w-4" />}
+                />
+                
+                <ValidatedInput
+                  label="E-mail"
+                  type="email"
+                  required
+                  value={formData.clientEmail}
+                  onChange={(e) => setFormData(prev => ({ ...prev, clientEmail: e.target.value }))}
+                  error={validationErrors.clientEmail}
+                  placeholder="seu@email.com"
+                  leftIcon={<Mail className="h-4 w-4" />}
+                />
+                
+                <ValidatedInput
+                  label="Telefone"
+                  type="phone"
+                  required
+                  value={formData.clientPhone}
+                  onChange={(e) => setFormData(prev => ({ ...prev, clientPhone: e.target.value }))}
+                  error={validationErrors.clientPhone}
+                  helperText="Ex: (11) 99999-9999"
+                />
+                
+                <ValidatedInput
+                  label="Nome da Empresa"
+                  type="text"
+                  value={formData.companyName}
+                  onChange={(e) => setFormData(prev => ({ ...prev, companyName: e.target.value }))}
+                  error={validationErrors.companyName}
+                  placeholder="Nome da sua empresa (opcional)"
+                  leftIcon={<Building className="h-4 w-4" />}
+                />
+                
+                <ValidatedInput
+                  label="CPF/CNPJ"
+                  type="document"
+                  value={formData.document}
+                  onChange={(e) => setFormData(prev => ({ ...prev, document: e.target.value }))}
+                  error={validationErrors.document}
+                  helperText="Opcional - para emissão de nota fiscal"
+                  placeholder="000.000.000-00 ou 00.000.000/0000-00"
+                />
+                
+                <ValidatedInput
+                  label="CEP"
+                  type="cep"
+                  value={formData.cep}
+                  onChange={(e) => setFormData(prev => ({ ...prev, cep: e.target.value }))}
+                  error={validationErrors.cep}
+                  helperText="Opcional - para orçamento de visitas"
+                  placeholder="00000-000"
+                />
               </div>
+              
+              {/* Campos de endereço adicionais se CEP for preenchido */}
+              {formData.cep && (
+                <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <ValidatedInput
+                    label="Endereço"
+                    type="text"
+                    value={formData.address}
+                    onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
+                    placeholder="Rua, número"
+                  />
+                  
+                  <ValidatedInput
+                    label="Cidade"
+                    type="text"
+                    value={formData.city}
+                    onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
+                    placeholder="Sua cidade"
+                  />
+                  
+                  <ValidatedInput
+                    label="Estado"
+                    type="text"
+                    value={formData.state}
+                    onChange={(e) => setFormData(prev => ({ ...prev, state: e.target.value }))}
+                    placeholder="SP"
+                    maxLength={2}
+                  />
+                </div>
+              )}
             </div>
 
             {/* Tipo de Projeto */}
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Detalhes do Projeto</h3>
-              <div>
-                <label htmlFor="projectType" className="block text-sm font-medium text-gray-700">
-                  Tipo de Projeto *
-                </label>
-                <input
-                  type="text"
-                  id="projectType"
-                  required
-                  placeholder="Ex: Automação de relatórios financeiros"
-                  value={formData.projectType}
-                  onChange={(e) => setFormData(prev => ({ ...prev, projectType: e.target.value }))}
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                />
-              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                <FileText className="mr-2 h-5 w-5 text-blue-600" />
+                Detalhes do Projeto
+              </h3>
+              <ValidatedInput
+                label="Tipo de Projeto"
+                type="text"
+                required
+                value={formData.projectType}
+                onChange={(e) => setFormData(prev => ({ ...prev, projectType: e.target.value }))}
+                error={validationErrors.projectType}
+                placeholder="Ex: Automação de relatórios financeiros"
+                helperText="Descreva brevemente o tipo de projeto que você precisa"
+              />
             </div>
 
             {/* Serviços */}

@@ -12,6 +12,13 @@ export interface QuoteRequest {
   clientEmail: string;
   clientPhone: string;
   companyName?: string;
+  // Novos campos de validação
+  document?: string; // CPF ou CNPJ
+  cep?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  // Campos existentes
   projectType: string;
   services: string[];
   description: string;
@@ -53,4 +60,41 @@ export interface CompanyInfo {
   address: string;
   website: string;
   logo?: string;
+}
+
+// Tipos para validações avançadas
+export interface ValidationRule {
+  required?: boolean;
+  minLength?: number;
+  maxLength?: number;
+  pattern?: RegExp;
+  message?: string;
+}
+
+export interface FormFieldConfig {
+  type: 'text' | 'email' | 'phone' | 'cep' | 'document' | 'password';
+  label: string;
+  placeholder?: string;
+  helperText?: string;
+  validation?: ValidationRule;
+  mask?: boolean;
+}
+
+export interface ValidationState {
+  isValid: boolean;
+  errors: Record<string, string>;
+  touchedFields: Set<string>;
+}
+
+export type DocumentType = 'cpf' | 'cnpj' | 'auto';
+
+export interface AddressInfo {
+  cep?: string;
+  street?: string;
+  number?: string;
+  complement?: string;
+  neighborhood?: string;
+  city?: string;
+  state?: string;
+  country?: string;
 }
